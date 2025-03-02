@@ -53,15 +53,15 @@ namespace Tennis_Card_Game.Models
             CardCategory = new CardCategory(); 
         }
 
-        public Card(string name, int cardCategoryId, int power, int precision, int energyConsumption, CardCategory cardCategory)
-    : this() 
+        public Card(string name, CardCategory cardCategory, int power, int precision, int energyConsumption)
+: this()
         {
             Name = name;
-            CardCategoryId = cardCategoryId;
+            CardCategory = cardCategory;
+            CardCategoryId = cardCategory.Id; 
             Power = power;
             Precision = precision;
             EnergyConsumption = energyConsumption;
-            CardCategory = cardCategory; 
         }
     }
 }

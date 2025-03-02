@@ -1,5 +1,6 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Tennis_Card_Game.Data;
+using TennisCardBattle.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +13,21 @@ builder.Services.AddDbContext<Tennis_Card_GameContext>(options =>
 
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<Tennis_Card_GameContext>();
+        context.Database.Migrate(); 
+        DbInitializer.Initialize(context); 
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"A apărut o eroare la inițializarea bazei de date: {ex.Message}");
+    }
+}
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {

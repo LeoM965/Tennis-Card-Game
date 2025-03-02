@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Tennis_Card_Game.Models;
+using TennisCardBattle.Data;
 
 namespace Tennis_Card_Game.Data
 {
@@ -29,6 +30,7 @@ namespace Tennis_Card_Game.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            
 
             modelBuilder.Entity<Player>()
                 .HasOne(p => p.PlayingStyle)
