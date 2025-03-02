@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Tennis_Card_Game.Models;
-using TennisCardBattle.Data;
 
 namespace Tennis_Card_Game.Data
 {
