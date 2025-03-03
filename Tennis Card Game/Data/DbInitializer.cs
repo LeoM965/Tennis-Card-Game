@@ -7,7 +7,7 @@ namespace TennisCardBattle.Data
     {
         public static void Initialize(Tennis_Card_GameContext context)
         {
-            if (context.Surfaces.Any()) return;
+            if (context.Players.Any()) return;
             // Populate playing surfaces
             var surfaces = new List<Surface>
             {
@@ -172,28 +172,45 @@ namespace TennisCardBattle.Data
 
             // Populate players
             var players = new List<Player>
-            {
-                new("Roger F.", playingStyles[0], specialAbilities[5]) { Level = 5, Experience = 2500, MaxEnergy = 120, CurrentEnergy = 120 },
-                new("Rafa N.", playingStyles[2], specialAbilities[6]) { Level = 5, Experience = 2400, MaxEnergy = 130, CurrentEnergy = 130 },
-                new("Novak D.", playingStyles[0], specialAbilities[0]) { Level = 5, Experience = 2600, MaxEnergy = 125, CurrentEnergy = 125 },
-                new("Andy M.", playingStyles[2], specialAbilities[2]) { Level = 4, Experience = 1800, MaxEnergy = 115, CurrentEnergy = 115 },
-                new("Serena W.", playingStyles[1], specialAbilities[1]) { Level = 5, Experience = 2700, MaxEnergy = 110, CurrentEnergy = 110 },
-                new("Simona H.", playingStyles[2], specialAbilities[3]) { Level = 4, Experience = 1900, MaxEnergy = 115, CurrentEnergy = 115 },
-                new("Maria S.", playingStyles[1], specialAbilities[4]) { Level = 4, Experience = 1700, MaxEnergy = 105, CurrentEnergy = 105 },
-                new("Pete S.", playingStyles[3], specialAbilities[7]) { Level = 4, Experience = 2000, MaxEnergy = 110, CurrentEnergy = 110 },
-                new("Andre A.", playingStyles[1], specialAbilities[1]) { Level = 4, Experience = 1950, MaxEnergy = 110, CurrentEnergy = 110 },
-                new("Steffi G.", playingStyles[0], specialAbilities[2]) { Level = 4, Experience = 2100, MaxEnergy = 105, CurrentEnergy = 105 },
-                new("Björn B.", playingStyles[2], specialAbilities[6]) { Level = 3, Experience = 1500, MaxEnergy = 105, CurrentEnergy = 105 },
-                new("John M.", playingStyles[3], specialAbilities[7]) { Level = 3, Experience = 1400, MaxEnergy = 100, CurrentEnergy = 100 },
-                new("Jimmy C.", playingStyles[4], specialAbilities[3]) { Level = 3, Experience = 1350, MaxEnergy = 100, CurrentEnergy = 100 },
-                new("Monica S.", playingStyles[1], specialAbilities[2]) { Level = 3, Experience = 1550, MaxEnergy = 100, CurrentEnergy = 100 },
-                new("Martina N.", playingStyles[3], specialAbilities[0]) { Level = 3, Experience = 1600, MaxEnergy = 100, CurrentEnergy = 100 },
-                new("Chris E.", playingStyles[2], specialAbilities[4]) { Level = 3, Experience = 1450, MaxEnergy = 100, CurrentEnergy = 100 },
-                new("Boris B.", playingStyles[3], specialAbilities[7]) { Level = 2, Experience = 950, MaxEnergy = 95, CurrentEnergy = 95 },
-                new("Player", playingStyles[0], specialAbilities[0]) { Level = 1, Experience = 0, MaxEnergy = 100, CurrentEnergy = 100 }
-            };
-            context.Players.AddRange(players);
+{
+    // Male Players
+    new Player { Id = 1, Name = "Carlos Alcaraz", PlayingStyle = playingStyles[1], SpecialAbility = specialAbilities[2], Level = 5, Experience = 3000, MaxEnergy = 120, CurrentEnergy = 120 },
+    new Player { Id = 2, Name = "Novak Djokovic", PlayingStyle = playingStyles[0], SpecialAbility = specialAbilities[0], Level = 5, Experience = 4000, MaxEnergy = 130, CurrentEnergy = 130 },
+    new Player { Id = 3, Name = "Daniil Medvedev", PlayingStyle = playingStyles[2], SpecialAbility = specialAbilities[6], Level = 5, Experience = 3500, MaxEnergy = 125, CurrentEnergy = 125 },
+    new Player { Id = 4, Name = "Stefanos Tsitsipas", PlayingStyle = playingStyles[4], SpecialAbility = specialAbilities[1], Level = 4, Experience = 2800, MaxEnergy = 115, CurrentEnergy = 115 },
+    new Player { Id = 5, Name = "Casper Ruud", PlayingStyle = playingStyles[2], SpecialAbility = specialAbilities[3], Level = 4, Experience = 2600, MaxEnergy = 115, CurrentEnergy = 115 },
+    new Player { Id = 6, Name = "Holger Rune", PlayingStyle = playingStyles[1], SpecialAbility = specialAbilities[7], Level = 3, Experience = 1800, MaxEnergy = 110, CurrentEnergy = 110 },
+    new Player { Id = 7, Name = "Taylor Fritz", PlayingStyle = playingStyles[3], SpecialAbility = specialAbilities[5], Level = 3, Experience = 1900, MaxEnergy = 105, CurrentEnergy = 105 },
+    new Player { Id = 8, Name = "Felix Auger-Aliassime", PlayingStyle = playingStyles[1], SpecialAbility = specialAbilities[4], Level = 3, Experience = 2000, MaxEnergy = 105, CurrentEnergy = 105 },
+    new Player { Id = 9, Name = "Jannik Sinner", PlayingStyle = playingStyles[1], SpecialAbility = specialAbilities[2], Level = 3, Experience = 1850, MaxEnergy = 105, CurrentEnergy = 105 },
+    new Player { Id = 10, Name = "Hubert Hurkacz", PlayingStyle = playingStyles[3], SpecialAbility = specialAbilities[6], Level = 3, Experience = 1750, MaxEnergy = 100, CurrentEnergy = 100 },
+    new Player { Id = 11, Name = "Cameron Norrie", PlayingStyle = playingStyles[2], SpecialAbility = specialAbilities[0], Level = 3, Experience = 1700, MaxEnergy = 100, CurrentEnergy = 100 },
+    new Player { Id = 12, Name = "Lorenzo Musetti", PlayingStyle = playingStyles[4], SpecialAbility = specialAbilities[3], Level = 2, Experience = 1200, MaxEnergy = 95, CurrentEnergy = 95 },
+    new Player { Id = 13, Name = "Sebastian Korda", PlayingStyle = playingStyles[1], SpecialAbility = specialAbilities[7], Level = 2, Experience = 1100, MaxEnergy = 95, CurrentEnergy = 95 },
+    new Player { Id = 14, Name = "Alex de Minaur", PlayingStyle = playingStyles[2], SpecialAbility = specialAbilities[5], Level = 2, Experience = 1050, MaxEnergy = 90, CurrentEnergy = 90 },
+    new Player { Id = 15, Name = "Jenson Brooksby", PlayingStyle = playingStyles[3], SpecialAbility = specialAbilities[4], Level = 2, Experience = 1000, MaxEnergy = 90, CurrentEnergy = 90 },
+    new Player { Id = 16, Name = "Player", PlayingStyle = playingStyles[0], SpecialAbility = specialAbilities[0], Level = 1, Experience = 0, MaxEnergy = 100, CurrentEnergy = 100 },
 
+    // Female Players
+    new Player { Id = 17, Name = "Iga Świątek", PlayingStyle = playingStyles[0], SpecialAbility = specialAbilities[0], Level = 5, Experience = 3200, MaxEnergy = 120, CurrentEnergy = 120 },
+    new Player { Id = 18, Name = "Ons Jabeur", PlayingStyle = playingStyles[4], SpecialAbility = specialAbilities[1], Level = 5, Experience = 3000, MaxEnergy = 125, CurrentEnergy = 125 },
+    new Player { Id = 19, Name = "Aryna Sabalenka", PlayingStyle = playingStyles[1], SpecialAbility = specialAbilities[2], Level = 5, Experience = 2900, MaxEnergy = 120, CurrentEnergy = 120 },
+    new Player { Id = 20, Name = "Jessica Pegula", PlayingStyle = playingStyles[2], SpecialAbility = specialAbilities[3], Level = 4, Experience = 2500, MaxEnergy = 115, CurrentEnergy = 115 },
+    new Player { Id = 21, Name = "Coco Gauff", PlayingStyle = playingStyles[1], SpecialAbility = specialAbilities[4], Level = 4, Experience = 2300, MaxEnergy = 115, CurrentEnergy = 115 },
+    new Player { Id = 22, Name = "Maria Sakkari", PlayingStyle = playingStyles[2], SpecialAbility = specialAbilities[5], Level = 3, Experience = 1900, MaxEnergy = 110, CurrentEnergy = 110 },
+    new Player { Id = 23, Name = "Daria Kasatkina", PlayingStyle = playingStyles[3], SpecialAbility = specialAbilities[6], Level = 3, Experience = 1800, MaxEnergy = 105, CurrentEnergy = 105 },
+    new Player { Id = 24, Name = "Veronika Kudermetova", PlayingStyle = playingStyles[1], SpecialAbility = specialAbilities[7], Level = 3, Experience = 1750, MaxEnergy = 105, CurrentEnergy = 105 },
+    new Player { Id = 25, Name = "Belinda Bencic", PlayingStyle = playingStyles[0], SpecialAbility = specialAbilities[0], Level = 3, Experience = 1700, MaxEnergy = 105, CurrentEnergy = 105 },
+    new Player { Id = 26, Name = "Camila Giorgi", PlayingStyle = playingStyles[1], SpecialAbility = specialAbilities[2], Level = 3, Experience = 1650, MaxEnergy = 100, CurrentEnergy = 100 },
+    new Player { Id = 27, Name = "Karolina Pliskova", PlayingStyle = playingStyles[3], SpecialAbility = specialAbilities[3], Level = 2, Experience = 1300, MaxEnergy = 95, CurrentEnergy = 95 },
+    new Player { Id = 28, Name = "Elise Mertens", PlayingStyle = playingStyles[2], SpecialAbility = specialAbilities[4], Level = 2, Experience = 1200, MaxEnergy = 95, CurrentEnergy = 95 },
+    new Player { Id = 29, Name = "Beatriz Haddad Maia", PlayingStyle = playingStyles[4], SpecialAbility = specialAbilities[5], Level = 2, Experience = 1100, MaxEnergy = 90, CurrentEnergy = 90 },
+    new Player { Id = 30, Name = "Anastasia Potapova", PlayingStyle = playingStyles[1], SpecialAbility = specialAbilities[6], Level = 2, Experience = 1050, MaxEnergy = 90, CurrentEnergy = 90 },
+    new Player { Id = 31, Name = "Zheng Qinwen", PlayingStyle = playingStyles[3], SpecialAbility = specialAbilities[7], Level = 2, Experience = 1000, MaxEnergy = 90, CurrentEnergy = 90 },
+    new Player { Id = 32, Name = "Player", PlayingStyle = playingStyles[0], SpecialAbility = specialAbilities[0], Level = 1, Experience = 0, MaxEnergy = 100, CurrentEnergy = 100 }
+};
+
+context.Players.AddRange(players);
             // Populate tournaments
             var tournaments = new List<Tournament>
             {
