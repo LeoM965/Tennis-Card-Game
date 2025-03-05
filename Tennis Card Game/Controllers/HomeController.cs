@@ -36,7 +36,7 @@ namespace Tennis_Card_Game.Controllers
                     .ToListAsync(),
                 RecentTournaments = await _context.Tournaments
                     .Include(t => t.Surface)
-                    .OrderByDescending(t => t.StartDate)
+                    .OrderByDescending(t => t.StartTime)
                     .Take(2)
                     .ToListAsync()
             };
@@ -85,65 +85,8 @@ namespace Tennis_Card_Game.Controllers
             return View(model);
         }
 
-        public async Task<IActionResult> PlayerDetails(int id)
-        {
-            var player = await _context.Players
-                .Include(p => p.PlayingStyle)
-                .Include(p => p.SpecialAbility)
-                .Include(p => p.PlayerCards)
-                    .ThenInclude(pc => pc.Card)
-                        .ThenInclude(c => c.CardCategory)
-                .Include(p => p.MatchesAsPlayer1)
-                    .ThenInclude(m => m.Tournament)
-                .Include(p => p.MatchesAsPlayer2)
-                    .ThenInclude(m => m.Tournament)
-                .FirstOrDefaultAsync(p => p.Id == id);
-
-            if (player == null)
-            {
-                return NotFound();
-            }
-
-           
-            var recentMatches = player.MatchesAsPlayer1
-                .Union(player.MatchesAsPlayer2)
-                .OrderByDescending(m => m.StartTime)
-                .Take(5)
-                .ToList();
-
-            var playerCards = player.PlayerCards
-                .Where(pc => pc.InDeck)
-                .ToList();
-
-            int wins = player.MatchesAsPlayer1.Count(m => m.IsCompleted && m.WinnerId == player.Id) +
-                       player.MatchesAsPlayer2.Count(m => m.IsCompleted && m.WinnerId == player.Id);
-
-            int losses = player.MatchesAsPlayer1.Count(m => m.IsCompleted && m.WinnerId != null && m.WinnerId != player.Id) +
-                        player.MatchesAsPlayer2.Count(m => m.IsCompleted && m.WinnerId != null && m.WinnerId != player.Id);
-
-            var model = new PlayerDetailsViewModel
-            {
-                Player = player,
-                PlayerCards = playerCards,
-                RecentMatches = recentMatches,
-                Wins = wins,
-                Losses = losses
-            };
-
-            var recommendedCards = await _context.Cards
-                .Include(c => c.CardCategory)
-                .Where(c => !player.PlayerCards.Select(pc => pc.CardId).Contains(c.Id))
-                .Take(4)
-                .ToListAsync();
-
-            model.RecommendedCards = recommendedCards;
-
-            return View(model);
-        }
-
         public async Task<IActionResult> GameDashboard()
         {
-            // Get top players
             var topPlayers = await _context.Players
                 .Include(p => p.PlayingStyle)
                 .OrderByDescending(p => p.Level)
@@ -151,7 +94,6 @@ namespace Tennis_Card_Game.Controllers
                 .Take(5)
                 .ToListAsync();
 
-            // Get most popular cards - optimized query
             var popularCards = await _context.PlayedCards
                 .Include(pc => pc.Card)
                 .ThenInclude(c => c.CardCategory)
@@ -167,7 +109,6 @@ namespace Tennis_Card_Game.Controllers
                 .Take(5)
                 .ToListAsync();
 
-            // Get surface statistics
             var surfaceStats = await _context.Matches
                 .Include(m => m.Surface)
                 .Include(m => m.Sets)
@@ -183,7 +124,6 @@ namespace Tennis_Card_Game.Controllers
                 })
                 .ToListAsync();
 
-            // Get recent activity
             var recentMatches = await _context.Matches
                 .Include(m => m.Player1)
                 .Include(m => m.Player2)
@@ -194,7 +134,6 @@ namespace Tennis_Card_Game.Controllers
                 .Take(10)
                 .ToListAsync();
 
-            // Get playing style distribution
             var styleDistribution = await _context.Players
                 .Include(p => p.PlayingStyle)
                 .GroupBy(p => new { p.PlayingStyle.Id, p.PlayingStyle.Name })
