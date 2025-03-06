@@ -12,7 +12,7 @@ namespace Tennis_Card_Game.Models
 
         public int PlayingStyleId { get; set; }
 
-        public int SpecialAbilityId { get; set; }
+        public int? SpecialAbilityId { get; set; }
 
         public int Level { get; set; }
         public int Experience { get; set; }

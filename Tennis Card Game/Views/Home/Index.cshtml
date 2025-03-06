@@ -9,7 +9,7 @@
     <div class="basic-rules-section">
         <h2>📜 Core Rules</h2>
         <div class="rules-grid">
-            @foreach (var rule in Model.BasicRules)
+            @foreach (string rule in Model.BasicRules)
             {
                 <div class="rule-card">
                     <div class="rule-icon">@(Model.BasicRules.IndexOf(rule) + 1)</div>
@@ -22,7 +22,7 @@
     <div class="starter-players">
         <h2>🌟 Recommended Starter Players</h2>
         <div class="players-grid">
-            @foreach (var player in Model.StarterPlayers)
+            @foreach (Player player in Model.StarterPlayers)
             {
                 <div class="player-card">
                     <h3>@player.Name</h3>

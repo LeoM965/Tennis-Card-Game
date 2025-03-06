@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Tennis_Card_Game.Data;
 using Tennis_Card_Game.Models;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Tennis_Card_Game.Controllers
 {
@@ -14,17 +16,15 @@ namespace Tennis_Card_Game.Controllers
         private const int BASE_SKILL_POINTS = 1;
         private const int SKILL_POINTS_GROWTH_RATE = 2;
         private readonly Tennis_Card_GameContext _context;
-        private readonly ILogger<PlayerController> _logger;
 
-        public PlayerController(Tennis_Card_GameContext context, ILogger<PlayerController> logger)
+        public PlayerController(Tennis_Card_GameContext context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<IActionResult> PlayerDetails(int id)
         {
-            var player = await _context.Players
+            Player? player = await _context.Players
                 .AsNoTracking()
                 .Include(p => p.PlayingStyle)
                 .Include(p => p.SpecialAbility)
@@ -42,20 +42,20 @@ namespace Tennis_Card_Game.Controllers
                 return NotFound();
             }
 
-            var recentMatches = player.MatchesAsPlayer1
+            List<Match> recentMatches = player.MatchesAsPlayer1
                 .Concat(player.MatchesAsPlayer2)
                 .OrderByDescending(m => m.StartTime)
                 .Take(5)
                 .ToList();
 
-            var playerCards = player.PlayerCards
+            List<PlayerCard> playerCards = player.PlayerCards
                 .Where(pc => pc.InDeck)
                 .ToList();
 
             int wins = CalculatePlayerWins(player);
             int losses = CalculatePlayerLosses(player);
 
-            var recommendedCards = await _context.Cards
+            List<Card> recommendedCards = await _context.Cards
                 .AsNoTracking()
                 .Include(c => c.CardCategory)
                 .Where(c => !player.PlayerCards.Select(pc => pc.CardId).Contains(c.Id))
@@ -85,13 +85,12 @@ namespace Tennis_Card_Game.Controllers
         {
             if (id == 0)
             {
-                var firstPlayer = await _context.Players
+                Player? firstPlayer = await _context.Players
                     .OrderBy(p => p.Id)
                     .FirstOrDefaultAsync();
 
                 if (firstPlayer == null)
                 {
-                    _logger.LogWarning("No players found in the database");
                     throw new InvalidOperationException("No players exist in the system");
                 }
 
@@ -103,7 +102,7 @@ namespace Tennis_Card_Game.Controllers
         [HttpPost]
         public async Task<IActionResult> UpgradePlayerSkill(int playerId, string upgradeType, int upgradeId)
         {
-            var player = await _context.Players
+            Player? player = await _context.Players
                 .Include(p => p.PlayerCards)
                 .FirstOrDefaultAsync(p => p.Id == playerId);
 
@@ -112,7 +111,7 @@ namespace Tennis_Card_Game.Controllers
                 return NotFound();
             }
 
-            var skillPointsCost = CalculateSkillUpgradeCost(player);
+            int skillPointsCost = CalculateSkillUpgradeCost(player);
 
             if (player.Experience < skillPointsCost)
             {
@@ -121,19 +120,18 @@ namespace Tennis_Card_Game.Controllers
             }
 
             await PerformSkillUpgrade(player, upgradeType, upgradeId);
-
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(PlayerProgression), new { playerId });
         }
 
         private async Task PerformSkillUpgrade(Player player, string upgradeType, int upgradeId)
         {
-            var skillPointsCost = CalculateSkillUpgradeCost(player);
+            int skillPointsCost = CalculateSkillUpgradeCost(player);
 
             switch (upgradeType)
             {
                 case "PlayingStyle":
-                    var newPlayingStyle = await _context.PlayingStyles.FindAsync(upgradeId);
+                    PlayingStyle? newPlayingStyle = await _context.PlayingStyles.FindAsync(upgradeId);
                     if (newPlayingStyle != null)
                     {
                         player.PlayingStyle = newPlayingStyle;
@@ -144,7 +142,7 @@ namespace Tennis_Card_Game.Controllers
                     break;
 
                 case "SpecialAbility":
-                    var newSpecialAbility = await _context.SpecialAbilities.FindAsync(upgradeId);
+                    SpecialAbility? newSpecialAbility = await _context.SpecialAbilities.FindAsync(upgradeId);
                     if (newSpecialAbility != null)
                     {
                         player.SpecialAbility = newSpecialAbility;
@@ -160,6 +158,7 @@ namespace Tennis_Card_Game.Controllers
         {
             return targetLevel == 1 ? 1000 : (int)(BASE_XP_PER_LEVEL * Math.Pow(XP_GROWTH_MULTIPLIER, targetLevel - 1));
         }
+
         private int CalculateXpToNextLevel(Player player)
         {
             if (player.Level == 1)
@@ -190,11 +189,8 @@ namespace Tennis_Card_Game.Controllers
 
         private int CalculateSkillUpgradeCost(Player player)
         {
-            if (player.Level <= 1)
-                return 0;
-
-            int baseCost = 750;
-            int levelMultiplier = player.Level * 150;
+            int baseCost = 500;
+            int levelMultiplier = player.Level * 100;
 
             return player.PlayingStyle.Name switch
             {
@@ -228,11 +224,9 @@ namespace Tennis_Card_Game.Controllers
                 player.MaxEnergy += energyBonus + (player.Level * 2);
                 player.CurrentEnergy = player.MaxEnergy;
 
-                switch (player.Level)
+                if (player.Level == 5)
                 {
-                    case 5:
-                        player.Experience += 500;
-                        break;
+                    player.Experience += 500;
                 }
 
                 if (new Random().Next(20) == 0)
@@ -241,6 +235,7 @@ namespace Tennis_Card_Game.Controllers
                 }
             }
         }
+
         private double CalculateLevelProgressPercentage(Player player)
         {
             if (player.Level == 1)
@@ -302,7 +297,7 @@ namespace Tennis_Card_Game.Controllers
 
         public async Task<IActionResult> PerformTraining(int playerId, string trainingModuleName)
         {
-            var player = await _context.Players
+            Player? player = await _context.Players
                 .Include(p => p.PlayingStyle)
                 .Include(p => p.SpecialAbility)
                 .FirstOrDefaultAsync(p => p.Id == playerId);
@@ -310,24 +305,21 @@ namespace Tennis_Card_Game.Controllers
             if (player == null)
                 return NotFound();
 
-            // Ensure PlayingStyle is not null
             if (player.PlayingStyle == null)
                 return BadRequest("Player's playing style is not set.");
 
-            var trainingModule = GenerateTrainingModules(player)
+            TrainingModule? trainingModule = GenerateTrainingModules(player)
                 .FirstOrDefault(tm => tm.Name == trainingModuleName);
 
             if (trainingModule == null || player.CurrentEnergy < trainingModule.EnergyRequired)
                 return BadRequest("Invalid training module or insufficient energy.");
 
-            // Calculate bonus XP based on player's characteristics
             int baseXp = trainingModule.ExperienceReward;
             int bonusXp = CalculateBonusXp(player, baseXp);
             player.Experience += bonusXp;
 
             player.CurrentEnergy -= trainingModule.EnergyRequired;
 
-            // Use advanced level up method
             LevelUpPlayer(player);
 
             await _context.SaveChangesAsync();
@@ -338,7 +330,7 @@ namespace Tennis_Card_Game.Controllers
         {
             id = await EnsureValidPlayerId(id);
 
-            var player = await _context.Players
+            Player? player = await _context.Players
                 .AsNoTracking()
                 .Include(p => p.PlayingStyle)
                 .Include(p => p.SpecialAbility)
@@ -348,7 +340,7 @@ namespace Tennis_Card_Game.Controllers
             if (player == null)
                 return NotFound($"No player found with ID {id}");
 
-            var progressionViewModel = new PlayerProgressionViewModel
+            PlayerProgressionViewModel progressionViewModel = new PlayerProgressionViewModel
             {
                 Player = player,
                 CurrentLevelXpRequirement = CalculateXpForNextLevel(player.Level),
@@ -403,9 +395,7 @@ namespace Tennis_Card_Game.Controllers
 
         public async Task<IActionResult> TrainingCamp(int id)
         {
-            _logger.LogInformation($"TrainingCamp action called with playerId: {id}");
-
-            var player = await _context.Players
+            Player? player = await _context.Players
                 .Include(p => p.PlayingStyle)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
@@ -414,11 +404,11 @@ namespace Tennis_Card_Game.Controllers
                 return RedirectToAction(nameof(PlayerList));
             }
 
-            var trainingOptions = new TrainingCampViewModel
+            TrainingCampViewModel trainingOptions = new TrainingCampViewModel
             {
                 Player = player,
-                AvailableTrainingModules = (id >= 201 && id <= 232)
-                    ? new List<TrainingModule>()
+                AvailableTrainingModules = (id >= 201 && id <= 299)
+                    ? GenerateRecommendedTrainingModules(player)
                     : GenerateTrainingModules(player)
             };
 
@@ -427,123 +417,105 @@ namespace Tennis_Card_Game.Controllers
 
         public async Task<IActionResult> PlayerList()
         {
-            var players = await _context.Players
+            List<Player> players = await _context.Players
                 .Include(p => p.PlayingStyle)
                 .ToListAsync();
 
             return View(players);
         }
 
-        
         [HttpGet]
         public IActionResult CreatePlayer()
         {
-            try
-            {
-                ViewBag.PlayingStyles = _context.PlayingStyles
-                    .Select(p => new SelectListItem
-                    {
-                        Value = p.Id.ToString(),
-                        Text = p.Name
-                    })
-                    .ToList();
-
-                ViewBag.SpecialAbilities = _context.SpecialAbilities
-                    .Select(s => new SelectListItem
-                    {
-                        Value = s.Id.ToString(),
-                        Text = s.Name
-                    })
-                    .ToList();
-
-                return View(new Player
+            ViewBag.PlayingStyles = _context.PlayingStyles
+                .Select(p => new SelectListItem
                 {
-                    Level = 1,
-                    Experience = 0,
-                    MaxEnergy = 100,
-                    CurrentEnergy = 100
-                });
-            }
-            catch (Exception ex)
+                    Value = p.Id.ToString(),
+                    Text = p.Name
+                })
+                .ToList();
+
+            ViewBag.SpecialAbilities = _context.SpecialAbilities
+                .Select(s => new SelectListItem
+                {
+                    Value = s.Id.ToString(),
+                    Text = s.Name
+                })
+                .ToList();
+
+            return View(new Player
             {
-                _logger.LogError(ex, "Error loading CreatePlayer view");
-                return StatusCode(500, "An error occurred while preparing the create player form");
-            }
+                Level = 1,
+                Experience = 0,
+                MaxEnergy = 100,
+                CurrentEnergy = 100
+            });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreatePlayer(Player player)
         {
-            try
+            ViewBag.PlayingStyles = await _context.PlayingStyles
+                .Select(ps => new SelectListItem
+                {
+                    Value = ps.Id.ToString(),
+                    Text = ps.Name
+                })
+                .ToListAsync();
+
+            ViewBag.SpecialAbilities = await _context.SpecialAbilities
+                .Select(sa => new SelectListItem
+                {
+                    Value = sa.Id.ToString(),
+                    Text = sa.Name
+                })
+                .ToListAsync();
+
+            if (string.IsNullOrWhiteSpace(player.Name))
             {
-                ViewBag.PlayingStyles = await _context.PlayingStyles
-                    .Select(ps => new SelectListItem
-                    {
-                        Value = ps.Id.ToString(),
-                        Text = ps.Name
-                    })
-                    .ToListAsync();
-
-                ViewBag.SpecialAbilities = await _context.SpecialAbilities
-                    .Select(sa => new SelectListItem
-                    {
-                        Value = sa.Id.ToString(),
-                        Text = sa.Name
-                    })
-                    .ToListAsync();
-
-                if (string.IsNullOrWhiteSpace(player.Name))
-                {
-                    ModelState.AddModelError(nameof(player.Name), "Player name is required.");
-                    return View(player);
-                }
-
-                player.Name = player.Name.Trim();
-
-                var existingPlayer = await _context.Players
-                    .FirstOrDefaultAsync(p => p.Name.ToLower() == player.Name.ToLower());
-
-                if (existingPlayer != null)
-                {
-                    ModelState.AddModelError(nameof(player.Name), $"A player with the name '{player.Name}' already exists.");
-                    return View(player);
-                }
-
-                var playingStyleExists = await _context.PlayingStyles
-                    .AnyAsync(ps => ps.Id == player.PlayingStyleId);
-                var specialAbilityExists = await _context.SpecialAbilities
-                    .AnyAsync(sa => sa.Id == player.SpecialAbilityId);
-
-                if (!playingStyleExists)
-                {
-                    ModelState.AddModelError(nameof(player.PlayingStyleId), "Selected Playing Style is invalid.");
-                    return View(player);
-                }
-
-                if (!specialAbilityExists)
-                {
-                    ModelState.AddModelError(nameof(player.SpecialAbilityId), "Selected Special Ability is invalid.");
-                    return View(player);
-                }
-                
-                player.Level = 1;
-                player.Experience = 0;
-                player.MaxEnergy = 100;
-                player.CurrentEnergy = 100;
-
-                _context.Players.Add(player);
-                await _context.SaveChangesAsync();
-
-                TempData["SuccessMessage"] = $"Player {player.Name} created successfully!";
-                return RedirectToAction("PlayerList");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error creating player: {ex.Message}");
-                ModelState.AddModelError("", "An unexpected error occurred while creating the player.");
+                ModelState.AddModelError(nameof(player.Name), "Player name is required.");
                 return View(player);
             }
+
+            player.Name = player.Name.Trim();
+
+            Player? existingPlayer = await _context.Players
+                .FirstOrDefaultAsync(p => p.Name.ToLower() == player.Name.ToLower());
+
+            if (existingPlayer != null)
+            {
+                ModelState.AddModelError(nameof(player.Name), $"A player with the name '{player.Name}' already exists.");
+                return View(player);
+            }
+
+            bool playingStyleExists = await _context.PlayingStyles
+                .AnyAsync(ps => ps.Id == player.PlayingStyleId);
+            bool specialAbilityExists = await _context.SpecialAbilities
+                .AnyAsync(sa => sa.Id == player.SpecialAbilityId);
+
+            if (!playingStyleExists)
+            {
+                ModelState.AddModelError(nameof(player.PlayingStyleId), "Selected Playing Style is invalid.");
+                return View(player);
+            }
+
+            if (!specialAbilityExists)
+            {
+                ModelState.AddModelError(nameof(player.SpecialAbilityId), "Selected Special Ability is invalid.");
+                return View(player);
+            }
+
+            player.Level = 1;
+            player.Experience = 0;
+            player.MaxEnergy = 100;
+            player.CurrentEnergy = 100;
+
+            _context.Players.Add(player);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = $"Player {player.Name} created successfully!";
+            return RedirectToAction("PlayerList");
         }
     }
 }

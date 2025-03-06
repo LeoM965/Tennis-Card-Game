@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Tennis_Card_Game.Data;
+using Tennis_Card_Game.Interfaces;
+using Tennis_Card_Game.Services;
 using TennisCardBattle.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,7 +12,8 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<Tennis_Card_GameContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+builder.Services.AddScoped<ICardService, CardService>();
+builder.Services.AddScoped<IPlayerService, PlayerService>();
 
 var app = builder.Build();
 

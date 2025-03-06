@@ -1,4 +1,5 @@
-﻿@model List<Tennis_Card_Game.ViewModel.TournamentViewModel>
+﻿@using Tennis_Card_Game.ViewModel
+@model List<Tennis_Card_Game.ViewModel.TournamentViewModel>
 
 <style>
     :root {
@@ -107,7 +108,7 @@
     <h1 class="tournaments-title">Tennis Tournament Battles</h1>
 
     <div class="tournaments-grid">
-        @foreach (var tournament in Model)
+        @foreach (TournamentViewModel tournament in Model)
         {
             <div class="tournament-card">
                 <div class="tournament-card-header">

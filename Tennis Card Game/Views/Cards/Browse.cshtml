@@ -1,4 +1,4 @@
-﻿@model BrowseCardsVM
+﻿@model Tennis_Card_Game.ViewModel.BrowseCardsVM
 
 @{
     ViewData["Title"] = "Browse Tennis Cards";
@@ -169,7 +169,7 @@
                             <label class="form-label fw-bold">Surface</label>
                             <select class="form-select" name="surface" id="surfaceSelect">
                                 <option value="">All Surfaces</option>
-                                @foreach (var surface in Model.Surfaces)
+                                @foreach (Surface surface in Model.Surfaces)
                                 {
                                     <option value="@surface.Id" selected="@(Model.SelectedSurface == surface.Id.ToString())">@surface.Name</option>
                                 }
@@ -256,7 +256,7 @@
             else
             {
                 <div class="grid-view" id="cardsContainer">
-                    @foreach (var card in Model.Cards)
+                    @foreach (Card card in Model.Cards)
                     {
                         <div class="card-item"
                              data-power="@card.Power"
@@ -313,15 +313,15 @@
                                             <div class="surface-badges">
                                                 @if (card.ClayBonus > 0)
                                                 {
-                                                    <span class="badge clay-badge">Clay +@card.ClayBonus</span>
+                                                    <span class="badge clay-badge">Clay +@card.ClayBonus%</span>
                                                 }
                                                 @if (card.GrassBonus > 0)
                                                 {
-                                                    <span class="badge grass-badge">Grass +@card.GrassBonus</span>
+                                                    <span class="badge grass-badge">Grass +@card.GrassBonus%</span>
                                                 }
                                                 @if (card.HardCourtBonus > 0)
                                                 {
-                                                    <span class="badge hard-badge">Hard +@card.HardCourtBonus</span>
+                                                    <span class="badge hard-badge">Hard +@card.HardCourtBonus%</span>
                                                 }
                                             </div>
                                         </div>

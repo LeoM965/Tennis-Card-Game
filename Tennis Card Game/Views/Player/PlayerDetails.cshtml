@@ -77,15 +77,15 @@
             <div class="card shadow border-0 mb-4">
                 <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
                     <h3 class="m-0">Player Cards (@Model.ActiveCardCount)</h3>
-                    <a href="#" class="btn btn-sm btn-light">Manage Deck</a>
+                    <a href="@Url.Action("DeckBuilder", "Cards", new { id = Model.Player.Id })" class="btn btn-sm btn-light">Manage Deck</a>
                 </div>
                 <div class="card-body p-0">
                     <div class="card-deck-container p-3">
                         <div class="row g-3">
                             @foreach (var playerCard in Model.PlayerCards)
                             {
-                                var card = playerCard.Card;
-                                var categoryClass = card.CardCategory.Name.ToLower() switch
+                                Card card = playerCard.Card;
+                                string categoryClass = card.CardCategory.Name.ToLower() switch
                                 {
                                     "shot" => "bg-danger",
                                     "positioning" => "bg-success",
@@ -147,7 +147,7 @@
                             {
                                 <div class="col-12 text-center py-5">
                                     <p class="text-muted mb-3">No cards in deck</p>
-                                    <a href="#" class="btn btn-outline-primary">Add Cards</a>
+                                    <a href="@Url.Action("DeckBuilder", "Cards", new { id = Model.Player.Id })" class="btn btn-outline-primary">Add Cards</a>
                                 </div>
                             }
                         </div>
@@ -162,9 +162,9 @@
                 <div class="card-body p-0">
                     <div class="card-deck-container p-3">
                         <div class="row g-3">
-                            @foreach (var card in Model.RecommendedCards)
+                            @foreach (Card card in Model.RecommendedCards)
                             {
-                                var categoryClass = card.CardCategory.Name.ToLower() switch
+                                string categoryClass = card.CardCategory.Name.ToLower() switch
                                 {
                                     "shot" => "bg-danger",
                                     "positioning" => "bg-success",
@@ -200,7 +200,7 @@
                                             </div>
                                         </div>
                                         <div class="p-2 text-center">
-                                            <button class="btn btn-sm btn-outline-primary">Add to Deck</button>
+                                            <a href="@Url.Action("DeckBuilder", "Cards", new { id = Model.Player.Id })" class="btn btn-sm btn-outline-primary">Add to Deck</a>
                                         </div>
                                     </div>
                                 </div>
@@ -224,11 +224,11 @@
                 </div>
                 <div class="card-body p-0">
                     <div class="list-group list-group-flush">
-                        @foreach (var match in Model.RecentMatches)
+                        @foreach (Match match in Model.RecentMatches)
                         {
                             bool isPlayer1 = match.Player1Id == Model.Player.Id;
                             bool isWinner = match.IsCompleted && match.WinnerId == Model.Player.Id;
-                            var opponent = isPlayer1 ? match.Player2 : match.Player1;
+                            Player opponent = isPlayer1 ? match.Player2 : match.Player1;
 
                             <div class="list-group-item @(isWinner ? "list-group-item-success" : match.IsCompleted ? "list-group-item-danger" : "list-group-item-warning")">
                                 <div class="d-flex justify-content-between align-items-center">

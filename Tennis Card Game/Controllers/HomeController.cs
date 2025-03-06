@@ -1,20 +1,32 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Tennis_Card_Game.Data;
+using Tennis_Card_Game.Interfaces;
+using Tennis_Card_Game.Services;
+using Tennis_Card_Game.ViewModel;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Tennis_Card_Game.Models;
 
 namespace Tennis_Card_Game.Controllers
 {
     public class HomeController : Controller
     {
         private readonly Tennis_Card_GameContext _context;
-        public HomeController(Tennis_Card_GameContext context)
+        private readonly ICardService _cardService;
+        private readonly IPlayerService _playerService;
+
+        public HomeController(Tennis_Card_GameContext context, ICardService cardService, IPlayerService playerService)
         {
             _context = context;
+            _cardService = cardService;
+            _playerService = playerService;
         }
 
         public async Task<IActionResult> Index()
         {
-            var model = new GameIntroductionVM
+            GameIntroductionVM model = new GameIntroductionVM
             {
                 BasicRules = new List<string>
                 {
@@ -43,58 +55,16 @@ namespace Tennis_Card_Game.Controllers
             return View(model);
         }
 
-        public async Task<IActionResult> Browse(string name = null, string subCategory = null, string surface = null)
-        {
-            var query = _context.Cards
-                .Include(c => c.CardCategory)
-                .AsQueryable();
-
-            if (!string.IsNullOrEmpty(name))
-            {
-                query = query.Where(c => c.CardCategory.Name == name);
-            }
-
-            if (!string.IsNullOrEmpty(subCategory))
-            {
-                query = query.Where(c => c.CardCategory.SubCategory == subCategory);
-            }
-
-            var categories = await _context.CardCategories
-                .Select(c => c.Name)
-                .Distinct()
-                .ToListAsync();
-
-            var subcategories = await _context.CardCategories
-                .Select(c => c.SubCategory)
-                .Distinct()
-                .ToListAsync();
-
-            var surfaces = await _context.Surfaces.ToListAsync();
-
-            var model = new BrowseCardsVM
-            {
-                Cards = await query.ToListAsync(),
-                Categories = categories,
-                SelectedCategory = name,
-                SubCategories = subcategories,
-                SelectedSubCategory = subCategory,
-                Surfaces = surfaces,
-                SelectedSurface = surface
-            };
-
-            return View(model);
-        }
-
         public async Task<IActionResult> GameDashboard()
         {
-            var topPlayers = await _context.Players
+            List<Player> topPlayers = await _context.Players
                 .Include(p => p.PlayingStyle)
                 .OrderByDescending(p => p.Level)
                 .ThenByDescending(p => p.Experience)
                 .Take(5)
                 .ToListAsync();
 
-            var popularCards = await _context.PlayedCards
+            List<CardStatistic> popularCards = await _context.PlayedCards
                 .Include(pc => pc.Card)
                 .ThenInclude(c => c.CardCategory)
                 .GroupBy(pc => new { pc.Card.Id, pc.Card.Name, CategoryName = pc.Card.CardCategory.Name })
@@ -109,7 +79,7 @@ namespace Tennis_Card_Game.Controllers
                 .Take(5)
                 .ToListAsync();
 
-            var surfaceStats = await _context.Matches
+            List<SurfaceStatistic> surfaceStats = await _context.Matches
                 .Include(m => m.Surface)
                 .Include(m => m.Sets)
                 .Where(m => m.IsCompleted)
@@ -124,7 +94,7 @@ namespace Tennis_Card_Game.Controllers
                 })
                 .ToListAsync();
 
-            var recentMatches = await _context.Matches
+            List<Match> recentMatches = await _context.Matches
                 .Include(m => m.Player1)
                 .Include(m => m.Player2)
                 .Include(m => m.Tournament)
@@ -134,7 +104,7 @@ namespace Tennis_Card_Game.Controllers
                 .Take(10)
                 .ToListAsync();
 
-            var styleDistribution = await _context.Players
+            List<PlayingStyleDistribution> styleDistribution = await _context.Players
                 .Include(p => p.PlayingStyle)
                 .GroupBy(p => new { p.PlayingStyle.Id, p.PlayingStyle.Name })
                 .Select(g => new PlayingStyleDistribution
@@ -145,7 +115,7 @@ namespace Tennis_Card_Game.Controllers
                 })
                 .ToListAsync();
 
-            var model = new GameDashboardViewModel
+            GameDashboardViewModel model = new GameDashboardViewModel
             {
                 TopPlayers = topPlayers,
                 PopularCards = popularCards,
@@ -160,6 +130,35 @@ namespace Tennis_Card_Game.Controllers
             return View(model);
         }
 
+        public IActionResult Search(string query, string type = "all")
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return RedirectToAction("Index");
+            }
+
+            SearchViewModel searchViewModel = new SearchViewModel
+            {
+                Query = query,
+                SearchType = type
+            };
+
+            switch (type.ToLower())
+            {
+                case "cards":
+                    searchViewModel.Cards = _cardService.SearchCards(query);
+                    break;
+                case "players":
+                    searchViewModel.Players = _playerService.SearchPlayers(query);
+                    break;
+                case "all":
+                default:
+                    searchViewModel.Cards = _cardService.SearchCards(query);
+                    searchViewModel.Players = _playerService.SearchPlayers(query);
+                    break;
+            }
+
+            return View(searchViewModel);
+        }
     }
 }
-        

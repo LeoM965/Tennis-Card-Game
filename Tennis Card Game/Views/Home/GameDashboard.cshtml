@@ -52,7 +52,7 @@
                         <tbody>
                             @for (int i = 0; i < Model.TopPlayers.Count; i++)
                             {
-                                var player = Model.TopPlayers[i];
+                                Player player = Model.TopPlayers[i];
                                 <tr>
                                     <td>@(i + 1)</td>
                                     <td>@player.Name</td>
@@ -99,7 +99,7 @@
                         <tbody>
                             @for (int i = 0; i < Model.PopularCards.Count; i++)
                             {
-                                var card = Model.PopularCards[i];
+                                CardStatistic card = Model.PopularCards[i];
                                 <tr>
                                     <td>@(i + 1)</td>
                                     <td>@card.CardName</td>
@@ -130,7 +130,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var surfaceStat in Model.SurfaceStatistics)
+                            @foreach (SurfaceStatistic surfaceStat in Model.SurfaceStatistics)
                             {
                                 <tr>
                                     <td>@surfaceStat.SurfaceName</td>
@@ -160,11 +160,11 @@
                         </thead>
                         <tbody>
                             @{
-                                var totalStylePlayers = Model.StyleDistribution.Sum(sd => sd.PlayerCount);
+                                int totalStylePlayers = Model.StyleDistribution.Sum(sd => sd.PlayerCount);
                             }
-                            @foreach (var style in Model.StyleDistribution)
+                            @foreach (PlayingStyleDistribution style in Model.StyleDistribution)
                             {
-                                var percentage = totalStylePlayers > 0
+                                double percentage = totalStylePlayers > 0
                                 ? (style.PlayerCount * 100.0 / totalStylePlayers)
                                 : 0;
                                 <tr>
@@ -199,9 +199,9 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var match in Model.RecentMatches)
+                            @foreach (Match match in Model.RecentMatches)
                             {
-                                var winner = match.WinnerId == match.Player1Id ? match.Player1 : match.Player2;
+                                Player winner = match.WinnerId == match.Player1Id ? match.Player1 : match.Player2;
 
                                 <tr>
                                     <td>@match.EndTime?.ToString("dd MMM yyyy")</td>

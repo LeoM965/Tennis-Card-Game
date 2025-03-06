@@ -64,7 +64,7 @@
 
                         <select name="upgradeId" required>
                             <option value="">Select New Playing Style</option>
-                            @foreach (var style in Model.PossiblePlayingStyles)
+                            @foreach (PlayingStyle style in Model.PossiblePlayingStyles)
                             {
                                 <option value="@style.Id">@style.Name</option>
                             }
@@ -84,7 +84,7 @@
 
                         <select name="upgradeId" required>
                             <option value="">Select New Special Ability</option>
-                            @foreach (var ability in Model.PossibleSpecialAbilities)
+                            @foreach (SpecialAbility ability in Model.PossibleSpecialAbilities)
                             {
                                 <option value="@ability.Id">@ability.Name</option>
                             }
@@ -99,7 +99,7 @@
                 <h3>Recommended Training Modules</h3>
 
                 <div class="training-modules">
-                    @foreach (var module in Model.RecommendedTrainingModules)
+                    @foreach (TrainingModule module in Model.RecommendedTrainingModules)
                     {
                         <div class="training-module">
                             <h4>@module.Name</h4>
