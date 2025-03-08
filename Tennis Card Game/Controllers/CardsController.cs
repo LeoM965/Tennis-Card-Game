@@ -3,9 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Tennis_Card_Game.Data;
 using Tennis_Card_Game.Models;
 using Tennis_Card_Game.ViewModel;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Tennis_Card_Game.Controllers
 {
@@ -89,7 +86,6 @@ namespace Tennis_Card_Game.Controllers
             {
                 return RedirectToAction("Index", "Players");
             }
-
             try
             {
                 Player? player = await _context.Players
@@ -97,25 +93,33 @@ namespace Tennis_Card_Game.Controllers
                         .ThenInclude(pc => pc.Card)
                             .ThenInclude(c => c.CardCategory)
                     .FirstOrDefaultAsync(p => p.Id == Id);
-
                 if (player == null)
                 {
                     return NotFound();
                 }
 
-                Dictionary<string, List<Card>> cardsGroupedByCategory = await _context.Cards
-                    .Include(c => c.CardCategory)
-                    .GroupBy(c => c.CardCategory.Name)
-                    .ToDictionaryAsync(
-                        g => g.Key,
-                        g => g.ToList()
-                    );
+                bool isRestrictedPlayer = player.Id >= 201 && player.Id <= 232;
+
+                Dictionary<string, List<Card>> cardsGroupedByCategory;
+                if (!isRestrictedPlayer)
+                {
+                    cardsGroupedByCategory = await _context.Cards
+                        .Include(c => c.CardCategory)
+                        .GroupBy(c => c.CardCategory.Name)
+                        .ToDictionaryAsync(
+                            g => g.Key,
+                            g => g.ToList()
+                        );
+                }
+                else
+                {
+                    cardsGroupedByCategory = new Dictionary<string, List<Card>>();
+                }
 
                 List<Card> currentDeckCards = player.PlayerCards
                     .Where(pc => pc.InDeck)
                     .Select(pc => pc.Card)
                     .ToList();
-
                 List<Surface> surfaces = await _context.Surfaces.ToListAsync();
 
                 DeckBuilderVM model = new DeckBuilderVM
@@ -127,6 +131,11 @@ namespace Tennis_Card_Game.Controllers
                     PlayerId = player.Id,
                     DeckName = $"{player.Name}'s Deck"
                 };
+
+                if (isRestrictedPlayer)
+                {
+                    TempData["RestrictedPlayer"] = "Players with ID between 201 and 232 must bring their own deck from home and cannot modify it here.";
+                }
 
                 return View(model);
             }
@@ -155,6 +164,12 @@ namespace Tennis_Card_Game.Controllers
                     return NotFound();
                 }
 
+                if (player.Id >= 201 && player.Id <= 232)
+                {
+                    TempData["Error"] = "Players must bring their own deck and cannot modify it here.";
+                    return RedirectToAction("PlayerDetails", "Players", new { id = player.Id });
+                }
+
                 foreach (PlayerCard playerCard in player.PlayerCards)
                 {
                     if (playerCard.InDeck)
@@ -174,7 +189,6 @@ namespace Tennis_Card_Game.Controllers
                     foreach (int cardId in selectedCardIds)
                     {
                         PlayerCard? playerCard = player.PlayerCards.FirstOrDefault(pc => pc.CardId == cardId);
-
                         if (playerCard != null)
                         {
                             playerCard.InDeck = true;
@@ -197,7 +211,7 @@ namespace Tennis_Card_Game.Controllers
                 }
 
                 await _context.SaveChangesAsync();
-
+                TempData["Success"] = "Deck saved successfully!";
                 return RedirectToAction("PlayerDetails", "Players", new { id = player.Id });
             }
             catch (System.Exception ex)

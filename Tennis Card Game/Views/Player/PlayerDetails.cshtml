@@ -6,7 +6,7 @@
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card shadow border-0 rounded-lg player-header-card">
+            <div class="card shadow rounded-lg player-header-card">
                 <div class="card-body text-white">
                     <div class="row align-items-center">
                         <div class="col-md-2 text-center">
@@ -24,12 +24,6 @@
                                 <span class="badge bg-success px-3 py-2">@Model.Player.SpecialAbility.Name</span>
                                 <span class="badge bg-info ms-2 px-3 py-2">@Model.WinLossRecord Record</span>
                             </div>
-                            <div class="progress mb-2">
-                                <div class="progress-bar bg-success" role="progressbar" style="width: @($"{Model.Player.Experience}%");"
-                                     aria-valuenow="@Model.Player.Experience" aria-valuemin="0" aria-valuemax="100">
-                                </div>
-                            </div>
-                            <small class="text-white">Experience: @Model.Player.Experience / 100 to next level</small>
                         </div>
                         <div class="col-md-4">
                             <div class="d-flex justify-content-end">
@@ -74,7 +68,7 @@
 
     <div class="row">
         <div class="col-md-8">
-            <div class="card shadow border-0 mb-4">
+            <div class="card shadow mb-4">
                 <div class="card-header bg-gradient-primary text-white d-flex justify-content-between align-items-center">
                     <h3 class="m-0">Player Cards (@Model.ActiveCardCount)</h3>
                     <a href="@Url.Action("DeckBuilder", "Cards", new { id = Model.Player.Id })" class="btn btn-sm btn-light">Manage Deck</a>
@@ -97,20 +91,20 @@
                                     <div class="tennis-card shadow-sm @(playerCard.InHand ? "border-3 border-warning" : "")"
                                          onclick="flipCard(this)">
                                         <div class="card-inner position-relative w-100 h-100">
-                                            <div class="card-front position-absolute w-100 h-100 border rounded">
+                                            <div class="card-front position-absolute w-100 h-100 rounded">
                                                 <div class="@categoryClass text-white p-2 rounded-top">
                                                     <div class="d-flex justify-content-between align-items-center">
                                                         <h5 class="m-0">@card.Name</h5>
                                                         <span class="badge bg-white text-dark">@card.CardCategory.SubCategory</span>
                                                     </div>
                                                 </div>
-                                                <div class="p-3 text-center">
+                                                <div class="p-3 text-center card-description">
                                                     <div class="card-icon rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto mb-3">
                                                         <i class="fa fa-trophy fa-2x text-primary"></i>
                                                     </div>
-                                                    <p class="small mb-2">@(string.IsNullOrEmpty(card.Description) ? "No description available." : card.Description)</p>
+                                                    <p class="small mb-2 card-desc-text">@(string.IsNullOrEmpty(card.Description) ? "No description available." : card.Description)</p>
                                                 </div>
-                                                <div class="card-stats p-2 border-top mt-2">
+                                                <div class="card-stats p-2 border-top mt-auto">
                                                     <div class="row text-center g-0">
                                                         <div class="col-4 border-end">
                                                             <div class="stat-value">@card.Power</div>
@@ -133,8 +127,7 @@
                                                     </div>
                                                 }
                                             </div>
-
-                                            <div class="card-back position-absolute w-100 h-100 border rounded">
+                                            <div class="card-back position-absolute w-100 h-100 rounded">
                                                 <div class="h-100 d-flex align-items-center justify-content-center">
                                                     <h2 class="text-white text-center">Tennis Card Battle</h2>
                                                 </div>
@@ -155,7 +148,7 @@
                 </div>
             </div>
 
-            <div class="card shadow border-0 mb-4">
+            <div class="card shadow mb-4">
                 <div class="card-header bg-gradient-success text-white">
                     <h3 class="m-0">Recommended Cards</h3>
                 </div>
@@ -181,7 +174,7 @@
                                             </div>
                                         </div>
                                         <div class="p-2 text-center">
-                                            <p class="small mb-2 text-truncate">@(string.IsNullOrEmpty(card.Description) ? "No description available." : card.Description)</p>
+                                            <p class="small mb-2 recommended-desc">@(string.IsNullOrEmpty(card.Description) ? "No description available." : card.Description)</p>
                                         </div>
                                         <div class="card-stats p-2 border-top">
                                             <div class="row text-center g-0">
@@ -218,7 +211,7 @@
         </div>
 
         <div class="col-md-4">
-            <div class="card shadow border-0 mb-4">
+            <div class="card shadow mb-4">
                 <div class="card-header bg-gradient-info text-white">
                     <h3 class="m-0">Recent Matches</h3>
                 </div>
@@ -268,7 +261,7 @@
                 </div>
             </div>
 
-            <div class="card shadow border-0 mb-4">
+            <div class="card shadow mb-4">
                 <div class="card-header bg-gradient-dark text-white">
                     <h3 class="m-0">Playing Style</h3>
                 </div>
@@ -299,7 +292,7 @@
                 </div>
             </div>
 
-            <div class="card shadow border-0">
+            <div class="card shadow">
                 <div class="card-header bg-gradient-purple text-white">
                     <h3 class="m-0">Special Ability</h3>
                 </div>
@@ -351,18 +344,15 @@
         background-color: rgba(255,255,255,0.2);
     }
 
-    .progress {
-        height: 15px;
-    }
-
     .tennis-card {
         transition: transform .3s;
-        overflow: hidden;
         border-radius: 8px;
         background-color: white;
-        height: 300px;
+        height: 380px; 
         perspective: 1000px;
         cursor: pointer;
+        display: flex;
+        flex-direction: column;
     }
 
         .tennis-card:hover {
@@ -371,31 +361,45 @@
         }
 
     .card-icon {
-        transition: transform .3s;
-        width: 80px;
-        height: 80px;
+        width: 60px; 
+        height: 60px; 
         border: 1px solid #ddd;
-    }
-
-    .tennis-card:hover .card-icon {
-        transform: scale(1.1);
+        flex-shrink: 0;
     }
 
     .card-inner {
         transition: transform 0.6s;
         transform-style: preserve-3d;
+        height: 100%;
     }
 
     .card-front {
         backface-visibility: hidden;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         background: linear-gradient(135deg, #fff, #f8f9fa);
+        display: flex;
+        flex-direction: column;
     }
 
     .card-back {
         backface-visibility: hidden;
         transform: rotateY(180deg);
-        background: url('/images/card-back.jpg') center/cover;
+        background-image: url('/images/card-back.png');
+        background-position: center;
+        background-size: cover;
+    }
+
+    .card-description {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        overflow: hidden;
+    }
+
+    .card-desc-text {
+        overflow-y: auto;
+        max-height: 100px;
+        margin-bottom: auto;
     }
 
     .stat-value {
@@ -407,20 +411,28 @@
         position: relative;
         border: 1px solid #e0e0e0;
         border-radius: 8px;
-        height: 250px;
+        height: 300px; 
+        display: flex;
+        flex-direction: column;
     }
 
-        .recommended::after {
-            content: "Recommended";
-            position: absolute;
-            top: 10px;
-            right: -30px;
-            background: #ffc107;
-            color: #000;
-            padding: 2px 30px;
-            font-size: 10px;
-            transform: rotate(45deg);
-        }
+    .recommended-desc {
+        overflow-y: auto;
+        max-height: 60px;
+    }
+
+    .recommended::after {
+        content: "Recommended";
+        position: absolute;
+        top: 10px;
+        right: -30px;
+        background: #ffc107;
+        color: #000;
+        padding: 2px 30px;
+        font-size: 10px;
+        transform: rotate(45deg);
+        z-index: 1;
+    }
 
     .stat-circle {
         width: 60px;
@@ -449,6 +461,15 @@
 
     .tennis-card .card-inner.flipped {
         transform: rotateY(180deg);
+    }
+
+    .card-stats {
+        margin-top: auto;
+    }
+
+    .special-effect {
+        font-size: 0.85rem;
+        word-wrap: break-word;
     }
 </style>
 

@@ -2,10 +2,21 @@
 
 @{
     ViewData["Title"] = "Deck Builder";
+    bool isRestrictedPlayer = Model.Player != null && Model.Player.Id >= 201 && Model.Player.Id <= 232;
+    string readonlyAttr = isRestrictedPlayer ? "readonly" : "";
+    string disabledAttr = isRestrictedPlayer ? "disabled" : "";
 }
 
 <div class="container-fluid">
     <h2>Deck Builder</h2>
+
+    @if (isRestrictedPlayer)
+    {
+        <div class="alert alert-warning">
+            <strong>Note:</strong> Players must bring their own deck and cannot modify it here.
+        </div>
+    }
+
     <div class="row">
         <div class="col-md-8">
             <div class="card">
@@ -14,12 +25,12 @@
                     <div class="btn-group" role="group">
                         @foreach (string category in Model.CardsByCategory.Keys)
                         {
-                            <button type="button" class="btn btn-outline-primary category-filter" data-category="@category">@category</button>
+                            <button type="button" class="btn btn-outline-primary category-filter" data-category="@category" @(isRestrictedPlayer ? "disabled" : "")>@category</button>
                         }
-                        <button type="button" class="btn btn-outline-primary category-filter active" data-category="all">All</button>
+                        <button type="button" class="btn btn-outline-primary category-filter active" data-category="all" @(isRestrictedPlayer ? "disabled" : "")>All</button>
                     </div>
                 </div>
-                <div class="card-body">
+                <div class="card-body @(isRestrictedPlayer ? "restricted-content" : "")">
                     <div class="row">
                         @foreach (KeyValuePair<string, List<Tennis_Card_Game.Models.Card>> category in Model.CardsByCategory)
                         {
@@ -65,7 +76,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="card-footer">
-                                                    <button class="btn btn-sm btn-primary add-to-deck" data-card-id="@card.Id">Add to Deck</button>
+                                                    <button class="btn btn-sm btn-primary add-to-deck" data-card-id="@card.Id" @(isRestrictedPlayer ? "disabled" : "")>Add to Deck</button>
                                                 </div>
                                             </div>
                                         </div>
@@ -86,27 +97,57 @@
                 <div class="card-body">
                     <form asp-action="SaveDeck" method="post" id="deckForm">
                         <input type="hidden" asp-for="PlayerId" value="@(Model.Player?.Id)" />
+                        <input type="hidden" id="isRestrictedPlayer" value="@isRestrictedPlayer.ToString().ToLower()" />
                         <div class="mb-3">
                             <label asp-for="DeckName" class="form-label">Deck Name</label>
-                            <input asp-for="DeckName" class="form-control" value="@(Model.DeckName ?? (Model.Player != null ? $"{Model.Player.Name}'s Deck" : "New Deck"))" />
+                            @if (isRestrictedPlayer)
+                            {
+                                <input asp-for="DeckName" class="form-control" value="@(Model.DeckName ?? (Model.Player != null ? $"{Model.Player.Name}'s Deck" : "New Deck"))" readonly />
+                            }
+                            else
+                            {
+                                <input asp-for="DeckName" class="form-control" value="@(Model.DeckName ?? (Model.Player != null ? $"{Model.Player.Name}'s Deck" : "New Deck"))" />
+                            }
                         </div>
 
                         <div class="mb-3">
                             <label asp-for="SelectedSurfaceId" class="form-label">Optimized for Surface</label>
-                            <select asp-for="SelectedSurfaceId" class="form-select">
-                                <option value="">-- Select Surface --</option>
-                                @if (Model.Surfaces != null)
-                                {
-                                    @foreach (Tennis_Card_Game.Models.Surface surface in Model.Surfaces)
+                            @if (isRestrictedPlayer)
+                            {
+                                <select asp-for="SelectedSurfaceId" class="form-select" disabled>
+                                    <option value="">-- Select Surface --</option>
+                                    @if (Model.Surfaces != null)
                                     {
-                                        <option value="@surface.Id">@surface.Name</option>
+                                        @foreach (Tennis_Card_Game.Models.Surface surface in Model.Surfaces)
+                                        {
+                                            <option value="@surface.Id">@surface.Name</option>
+                                        }
                                     }
-                                }
-                            </select>
+                                </select>
+                            }
+                            else
+                            {
+                                <select asp-for="SelectedSurfaceId" class="form-select">
+                                    <option value="">-- Select Surface --</option>
+                                    @if (Model.Surfaces != null)
+                                    {
+                                        @foreach (Tennis_Card_Game.Models.Surface surface in Model.Surfaces)
+                                        {
+                                            <option value="@surface.Id">@surface.Name</option>
+                                        }
+                                    }
+                                </select>
+                            }
                         </div>
 
                         <div id="current-deck" class="mb-3">
                             <h5>Cards in Deck (<span id="deck-count">@((Model.CurrentDeckCards?.Count ?? 0))</span>)</h5>
+                            @if (isRestrictedPlayer)
+                            {
+                                <div class="alert alert-info">
+                                    This player must bring their own deck. Deck modification is disabled.
+                                </div>
+                            }
                             <div id="deck-cards" class="row">
                                 @if (Model.CurrentDeckCards != null)
                                 {
@@ -120,7 +161,14 @@
                                             <div class="card deck-card">
                                                 <div class="card-header d-flex justify-content-between align-items-center">
                                                     <h6 class="mb-0">@card.Name</h6>
-                                                    <button type="button" class="btn-close remove-from-deck" data-card-id="@card.Id"></button>
+                                                    @if (isRestrictedPlayer)
+                                                    {
+                                                        <button type="button" class="btn-close remove-from-deck" data-card-id="@card.Id" disabled style="display: none;"></button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <button type="button" class="btn-close remove-from-deck" data-card-id="@card.Id"></button>
+                                                    }
                                                 </div>
                                                 <div class="card-body">
                                                     <p class="mb-1"><small>@card.CardCategory.Name - @card.CardCategory.SubCategory</small></p>
@@ -162,14 +210,14 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-success">Save Deck</button>
+                        <button type="submit" class="btn btn-success" @(isRestrictedPlayer ? "disabled" : "")>Save Deck</button>
                         @if (Model.Player != null)
                         {
-                            <a asp-action="PlayerDetails" asp-controller="Players" asp-route-id="@Model.Player.Id" class="btn btn-secondary">Cancel</a>
+                            <a asp-action="PlayerDetails" asp-controller="Player" asp-route-id="@Model.Player.Id" class="btn btn-secondary">Cancel</a>
                         }
                         else
                         {
-                            <a asp-action="Index" asp-controller="Players" class="btn btn-secondary">Cancel</a>
+                            <a asp-action="Index" asp-controller="Player" class="btn btn-secondary">Cancel</a>
                         }
                     </form>
                 </div>
@@ -181,10 +229,27 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
+            const isRestrictedPlayer = $('#isRestrictedPlayer').val() === 'true';
+
+            if (isRestrictedPlayer) {
+                $('.add-to-deck, .remove-from-deck').prop('disabled', true);
+
+                // Prevent form submission for restricted players
+                $('#deckForm').submit(function (e) {
+                    if (isRestrictedPlayer) {
+                        e.preventDefault();
+                        alert('Players with ID between 201 and 232 must bring their own deck from home and cannot modify it here.');
+                        return false;
+                    }
+                });
+            }
+
             $('.category-filter').click(function () {
+                if (isRestrictedPlayer) return;
+
                 $('.category-filter').removeClass('active');
                 $(this).addClass('active');
-                    
+
                 const category = $(this).data('category');
                 if (category === 'all') {
                     $('.card-category-group').show();
@@ -195,6 +260,8 @@
             });
 
             $(document).on('click', '.add-to-deck', function () {
+                if (isRestrictedPlayer) return;
+
                 const cardId = $(this).data('card-id');
                 const cardElement = $(this).closest('.available-card');
 
@@ -211,34 +278,36 @@
                 const energy = cardElement.data('energy');
 
                 const deckCardHtml = `
-                            <div class="col-md-6 mb-2 deck-card-container"
-                                 data-card-id="${cardId}"
-                                 data-power="${power}"
-                                 data-precision="${precision}"
-                                 data-energy="${energy}">
-                                <div class="card deck-card">
-                                    <div class="card-header d-flex justify-content-between align-items-center">
-                                        <h6 class="mb-0">${cardName}</h6>
-                                        <button type="button" class="btn-close remove-from-deck" data-card-id="${cardId}"></button>
-                                    </div>
-                                    <div class="card-body">
-                                        <p class="mb-1"><small>${categoryName} - ${subcategory}</small></p>
-                                        <div class="d-flex justify-content-between">
-                                            <span>Power: ${power}</span>
-                                            <span>Precision: ${precision}</span>
-                                            <span>Energy: ${energy}</span>
+                                    <div class="col-md-6 mb-2 deck-card-container"
+                                         data-card-id="${cardId}"
+                                         data-power="${power}"
+                                         data-precision="${precision}"
+                                         data-energy="${energy}">
+                                        <div class="card deck-card">
+                                            <div class="card-header d-flex justify-content-between align-items-center">
+                                                <h6 class="mb-0">${cardName}</h6>
+                                                <button type="button" class="btn-close remove-from-deck" data-card-id="${cardId}"></button>
+                                            </div>
+                                            <div class="card-body">
+                                                <p class="mb-1"><small>${categoryName} - ${subcategory}</small></p>
+                                                <div class="d-flex justify-content-between">
+                                                    <span>Power: ${power}</span>
+                                                    <span>Precision: ${precision}</span>
+                                                    <span>Energy: ${energy}</span>
+                                                </div>
+                                            </div>
                                         </div>
+                                        <input type="hidden" name="SelectedCardIds" value="${cardId}" />
                                     </div>
-                                </div>
-                                <input type="hidden" name="SelectedCardIds" value="${cardId}" />
-                            </div>
-                        `;
+                                `;
 
                 $('#deck-cards').append(deckCardHtml);
                 updateDeckStats();
             });
 
             $(document).on('click', '.remove-from-deck', function () {
+                if (isRestrictedPlayer) return;
+
                 const cardId = $(this).data('card-id');
                 $('#deck-cards').find('[data-card-id="' + cardId + '"]').remove();
                 updateDeckStats();
@@ -311,6 +380,11 @@
 
         .surface-bonuses {
             margin-top: 8px;
+        }
+
+        .restricted-content {
+            opacity: 0.7;
+            pointer-events: none;
         }
     </style>
 }
