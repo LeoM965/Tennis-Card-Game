@@ -2,15 +2,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Tennis_Card_Game.Data;
 using Tennis_Card_Game.Interfaces;
-using Tennis_Card_Game.Services;
 using Tennis_Card_Game.ViewModel;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Tennis_Card_Game.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Tennis_Card_Game.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly Tennis_Card_GameContext _context;

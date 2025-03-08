@@ -1,6 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Tennis_Card_Game.Data;
 using Tennis_Card_Game.Interfaces;
+using Tennis_Card_Game.Models;
 using Tennis_Card_Game.Services;
 using TennisCardBattle.Data;
 
@@ -13,7 +15,22 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<Tennis_Card_GameContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<ICardService, CardService>();
-builder.Services.AddScoped<IPlayerService, PlayerService>();
+builder.Services.AddScoped<IPlayerService, PlayerSearchService>();
+builder.Services.AddScoped <PlayerService>();
+builder.Services.AddScoped<TrainingService>();
+
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddEntityFrameworkStores<Tennis_Card_GameContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.ExpireTimeSpan = TimeSpan.FromDays(30); // Păstrăm sesiunea pentru 30 de zile
+    options.LoginPath = "/Account/Login";
+    options.LogoutPath = "/Account/Logout";
+    options.SlidingExpiration = true; // Resetăm timpul de expirare la fiecare accesare
+});
 
 var app = builder.Build();
 
@@ -23,6 +40,8 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<Tennis_Card_GameContext>();
+        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
         context.Database.Migrate(); 
         DbInitializer.Initialize(context); 
     }

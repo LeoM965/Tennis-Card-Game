@@ -1,9 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Tennis_Card_Game.Models;
 
 namespace Tennis_Card_Game.Data
 {
-    public class Tennis_Card_GameContext : DbContext
+    public class Tennis_Card_GameContext : IdentityDbContext<ApplicationUser>
     {
         public Tennis_Card_GameContext(DbContextOptions<Tennis_Card_GameContext> options)
             : base(options)
@@ -29,7 +30,17 @@ namespace Tennis_Card_Game.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            
+
+            modelBuilder.Entity<ApplicationUser>()
+     .HasOne(u => u.Player)
+     .WithOne(p => p.User)
+     .HasForeignKey<Player>(p => p.UserId)
+     .IsRequired(false);
+
+            modelBuilder.Entity<Player>()
+       .HasOne(p => p.User)
+       .WithOne(u => u.Player)
+       .HasForeignKey<Player>(p => p.UserId);
 
             modelBuilder.Entity<Player>()
                 .HasOne(p => p.PlayingStyle)
