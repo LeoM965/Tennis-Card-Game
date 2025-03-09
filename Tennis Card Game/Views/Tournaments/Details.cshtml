@@ -9,6 +9,10 @@
         --background-color: #f4f6f7;
         --text-color: #2c3e50;
         --card-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        --success-color: #2ecc71;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --info-color: #3498db;
     }
 
     * {
@@ -106,13 +110,54 @@
         }
 
     .match-status-completed {
-        color: #2ecc71;
+        color: var(--success-color);
         font-weight: 600;
     }
 
     .match-status-in-progress {
-        color: #f39c12;
+        color: var(--warning-color);
         font-weight: 600;
+    }
+
+    .join-button {
+        display: inline-block;
+        background-color: var(--accent-color);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        margin-top: 1.5rem;
+        transition: background-color 0.3s;
+    }
+
+        .join-button:hover {
+            background-color: #2980b9;
+        }
+
+    .registration-message {
+        margin-top: 1.5rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+
+    .success-message {
+        background-color: rgba(46, 204, 113, 0.1);
+        color: var(--success-color);
+        border: 1px solid var(--success-color);
+    }
+
+    .error-message {
+        background-color: rgba(231, 76, 60, 0.1);
+        color: var(--danger-color);
+        border: 1px solid var(--danger-color);
+    }
+
+    .info-message {
+        background-color: rgba(52, 152, 219, 0.1);
+        color: var(--info-color);
+        border: 1px solid var(--info-color);
     }
 </style>
 
@@ -120,6 +165,27 @@
     <div class="tournament-details-header">
         <h1>@Model.Name Tournament Details</h1>
     </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="registration-message success-message">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="registration-message error-message">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    @if (TempData["InfoMessage"] != null)
+    {
+        <div class="registration-message info-message">
+            @TempData["InfoMessage"]
+        </div>
+    }
 
     <div class="tournament-details-content">
         <div class="tournament-info-card">
@@ -140,6 +206,29 @@
                 <span class="tournament-info-label">Level</span>
                 <span class="tournament-info-value">@Model.Level</span>
             </div>
+
+            @{
+                TimeSpan currentTime = DateTime.Now.TimeOfDay;
+                TimeSpan registrationStartTime = Model.StartTime.Subtract(TimeSpan.FromHours(1));
+                TimeSpan registrationEndTime = Model.StartTime.Subtract(TimeSpan.FromMinutes(5));
+            }
+
+            @if (currentTime >= registrationStartTime && currentTime <= registrationEndTime)
+            {
+                <a href="@Url.Action("Join", "Tournaments", new { id = Model.Id })" class="join-button">Înscrie-te la turneu</a>
+            }
+            else if (currentTime < registrationStartTime)
+            {
+                <div class="registration-message info-message">
+                    Înscrierea va fi disponibilă cu o oră înainte de începerea turneului.
+                </div>
+            }
+            else if (currentTime > registrationEndTime)
+            {
+                <div class="registration-message error-message">
+                    Înscrierile s-au închis pentru acest turneu.
+                </div>
+            }
         </div>
 
         <div class="tournament-rewards-card">

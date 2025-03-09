@@ -28,9 +28,8 @@ namespace Tennis_Card_Game.Models
         public bool SpecialAbilityUsed { get; set; }
         public string Momentum { get; set; }
 
-        [ForeignKey("User")]
         public string UserId { get; set; }
-        public virtual ApplicationUser User { get; set; }
+        public ApplicationUser User { get; set; }
         public virtual ICollection<PlayerCard> PlayerCards { get; set; }
         public virtual ICollection<Match> MatchesAsPlayer1 { get; set; }
         public virtual ICollection<Match> MatchesAsPlayer2 { get; set; }

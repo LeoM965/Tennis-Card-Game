@@ -344,9 +344,7 @@ namespace Tennis_Card_Game.Controllers
             TrainingCampViewModel trainingOptions = new TrainingCampViewModel
             {
                 Player = player,
-                AvailableTrainingModules = (id >= 201 && id <= 299)
-                    ? _trainingService.GenerateRecommendedTrainingModules(player)
-                    : _trainingService.GenerateTrainingModules(player)
+                AvailableTrainingModules = _trainingService.GenerateRecommendedTrainingModules(player)
             };
             return View(trainingOptions);
         }

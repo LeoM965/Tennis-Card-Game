@@ -27,20 +27,19 @@ namespace Tennis_Card_Game.Data
         public DbSet<WeatherCondition> WeatherConditions { get; set; }
         public DbSet<Tournament> Tournaments { get; set; }
 
+        public DbSet<TournamentRegistration> TournamentRegistrations { get; set; }
+
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<ApplicationUser>()
-     .HasOne(u => u.Player)
-     .WithOne(p => p.User)
-     .HasForeignKey<Player>(p => p.UserId)
-     .IsRequired(false);
-
             modelBuilder.Entity<Player>()
-       .HasOne(p => p.User)
-       .WithOne(u => u.Player)
-       .HasForeignKey<Player>(p => p.UserId);
+        .HasOne(p => p.User)
+        .WithOne(u => u.Player)
+        .HasForeignKey<Player>(p => p.UserId)
+        .IsRequired(false)
+        .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Player>()
                 .HasOne(p => p.PlayingStyle)

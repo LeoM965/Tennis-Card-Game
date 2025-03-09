@@ -1,0 +1,76 @@
+﻿@model Tennis_Card_Game.ViewModel.TournamentJoinViewModel
+
+@{
+    ViewData["Title"] = "Tournament Registration";
+}
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h2>Registration for tournament: @Model.TournamentName</h2>
+        </div>
+
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <strong>Surface:</strong> @Model.Surface
+                    </div>
+                    <div class="mb-3">
+                        <strong>Level:</strong> @Model.Level
+                    </div>
+                    <div class="mb-3">
+                        <strong>Tournament start time:</strong> @Model.TournamentStartTime.ToString("dd/MM/yyyy HH:mm")
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <strong>Registration period:</strong>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Starts at:</strong> @Model.RegistrationStartTime.ToString("dd/MM/yyyy HH:mm")
+                    </div>
+                    <div class="mb-3">
+                        <strong>Ends at:</strong> @Model.RegistrationEndTime.ToString("dd/MM/yyyy HH:mm")
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <p><strong>Tournament information:</strong></p>
+                <ul>
+                    <li>You will play in a tournament with 16 players (you and 15 AI players)</li>
+                    <li>Matches are organized in a knockout format</li>
+                    <li>Matches will start at the tournament's start time and will be scheduled at one-hour intervals</li>
+                    <li>To win tournament rewards, you must reach at least the semifinals</li>
+                </ul>
+            </div>
+
+            @if (Model.IsRegistrationOpen)
+            {
+                <form asp-action="JoinConfirm" method="post">
+                    <input type="hidden" name="tournamentId" value="@Model.TournamentId" />
+
+                    <div class="alert alert-warning">
+                        <p><strong>Warning:</strong> Once you register for the tournament, you cannot withdraw!</p>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg">Confirm Registration</button>
+                    </div>
+                </form>
+            }
+            else
+            {
+                <div class="alert alert-danger">
+                    <p><strong>Registration is not available at this time!</strong></p>
+                    <p>Registration period is between @Model.RegistrationStartTime.ToString("HH:mm") and @Model.RegistrationEndTime.ToString("HH:mm").</p>
+                </div>
+            }
+        </div>
+
+        <div class="card-footer">
+            <a asp-action="Details" asp-route-id="@Model.TournamentId" class="btn btn-secondary">Back to tournament details</a>
+        </div>
+    </div>
+</div>

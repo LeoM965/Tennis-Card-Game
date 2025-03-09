@@ -89,18 +89,38 @@
         text-align: center;
     }
 
-    .tournament-details-btn {
+    .tournament-buttons {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+
+    .tournament-details-btn, .tournament-join-btn {
         display: inline-block;
-        background-color: var(--accent-color);
-        color: white;
         text-decoration: none;
         padding: 0.5rem 1rem;
         border-radius: 6px;
         transition: background-color 0.3s ease;
+        flex: 1;
+        text-align: center;
+    }
+
+    .tournament-details-btn {
+        background-color: var(--accent-color);
+        color: white;
     }
 
         .tournament-details-btn:hover {
             background-color: var(--primary-color);
+        }
+
+    .tournament-join-btn {
+        background-color: #27ae60; 
+        color: white;
+    }
+
+        .tournament-join-btn:hover {
+            background-color: #219653; 
         }
 </style>
 
@@ -144,9 +164,14 @@
                     </div>
                 </div>
                 <div class="tournament-card-footer">
-                    <a href="@Url.Action("Details", new { id = tournament.Id })" class="tournament-details-btn">
-                        Tournament Details
-                    </a>
+                    <div class="tournament-buttons">
+                        <a href="@Url.Action("Details", new { id = tournament.Id })" class="tournament-details-btn">
+                            Tournament Details
+                        </a>
+                        <a href="@Url.Action("Join", new { id = tournament.Id })" class="tournament-join-btn">
+                            Join Tournament
+                        </a>
+                    </div>
                 </div>
             </div>
         }

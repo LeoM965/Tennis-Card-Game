@@ -4,6 +4,7 @@ using System.Security.Claims;
 using Tennis_Card_Game.Data;
 using Tennis_Card_Game.Models;
 using Tennis_Card_Game.ViewModel;
+
 namespace TennisCardBattle.Controllers
 {
     public class TournamentsController : Controller
@@ -15,8 +16,10 @@ namespace TennisCardBattle.Controllers
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
+        // GET: Tournaments
         public async Task<IActionResult> Index()
         {
+            // Obține toate turneele ordonate descrescător după ora de începere
             List<TournamentViewModel> tournaments = await _context.Tournaments
                 .Include(t => t.Surface)
                 .OrderByDescending(t => t.StartTime)
@@ -47,6 +50,7 @@ namespace TennisCardBattle.Controllers
             return View(tournaments);
         }
 
+        // GET: Tournaments/Details/{id}
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -54,6 +58,7 @@ namespace TennisCardBattle.Controllers
                 return NotFound();
             }
 
+            // Obține detaliile unui turneu specific
             TournamentViewModel? tournament = await _context.Tournaments
                 .Include(t => t.Surface)
                 .Include(t => t.Matches)
@@ -93,11 +98,13 @@ namespace TennisCardBattle.Controllers
             return View(tournament);
         }
 
+        // GET: Tournaments/Current
         public async Task<IActionResult> Current()
         {
             TimeSpan currentTime = DateTime.Now.TimeOfDay;
             DateTime today = DateTime.Today;
 
+            // Obține turneele active în momentul curent
             List<TournamentViewModel> currentTournaments = await _context.Tournaments
                 .Include(t => t.Surface)
                 .Include(t => t.Matches)
@@ -132,118 +139,61 @@ namespace TennisCardBattle.Controllers
             return View(currentTournaments);
         }
 
-        //    [HttpPost]
-        //    [ValidateAntiForgeryToken]
-        //    public async Task<IActionResult> JoinConfirm(int tournamentId)
-        //    {
-        //        var tournament = await _context.Tournaments
-        //            .FirstOrDefaultAsync(t => t.Id == tournamentId);
+        public async Task<IActionResult> Join(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
 
-        //        if (tournament == null)
-        //        {
-        //            return NotFound();
-        //        }
+            var tournament = await _context.Tournaments
+                .Include(t => t.Surface)
+                .FirstOrDefaultAsync(t => t.Id == id);
 
-        //        // Check if user already has matches in this tournament
-        //        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        //        var userPlayer = await _context.Players
-        //            .FirstOrDefaultAsync(p => p.UserId == userId);
+            if (tournament == null)
+            {
+                return NotFound();
+            }
 
-        //        if (userPlayer == null)
-        //        {
-        //            TempData["Error"] = "Nu aveți un jucător pentru a participa la turneu!";
-        //            return RedirectToAction(nameof(Details), new { id = tournamentId });
-        //        }
+            // Obține ora curentă
+            TimeSpan currentTime = DateTime.Now.TimeOfDay;
 
-        //        // Check if user is already in this tournament
-        //        var existingMatches = await _context.Matches
-        //            .AnyAsync(m => m.TournamentId == tournamentId &&
-        //                           (m.Player1Id == userPlayer.Id || m.Player2Id == userPlayer.Id));
+            // Verifică dacă este în intervalul de înscriere (cu o oră înainte de începere și până cu 5 minute înainte)
+            TimeSpan registrationStartTime = tournament.StartTime.Subtract(TimeSpan.FromHours(1));
+            TimeSpan registrationEndTime = tournament.StartTime.Subtract(TimeSpan.FromMinutes(5));
 
-        //        if (existingMatches)
-        //        {
-        //            TempData["Error"] = "Sunteți deja înscris în acest turneu!";
-        //            return RedirectToAction(nameof(Details), new { id = tournamentId });
-        //        }
+            if (currentTime < registrationStartTime || currentTime > registrationEndTime)
+            {
+                TempData["ErrorMessage"] = "Înscrierea este permisă doar cu o oră înainte de începerea turneului și se închide cu 5 minute înainte de start.";
+                return RedirectToAction(nameof(Details), new { id = tournament.Id });
+            }
 
-        //        // Get tournament surface
-        //        var surface = await _context.Surfaces.FindAsync(tournament.SurfaceId);
-        //        if (surface == null)
-        //        {
-        //            TempData["Error"] = "Suprafața de joc nu a fost găsită!";
-        //            return RedirectToAction(nameof(Details), new { id = tournamentId });
-        //        }
+            // Obține ID-ul utilizatorului curent
+            string userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        //        // Generate 15 random AI opponents
-        //        var randomOpponents = await _context.Players
-        //            .Where(p => p.UserId == null) // Only AI players
-        //            .OrderBy(p => Guid.NewGuid()) // Random order
-        //            .Take(15)
-        //            .ToListAsync();
+            // Verifică dacă utilizatorul este deja înscris la acest turneu
+            var existingRegistration = await _context.TournamentRegistrations
+                .FirstOrDefaultAsync(r => r.TournamentId == id && r.UserId == userId);
 
-        //        if (randomOpponents.Count < 15)
-        //        {
-        //            TempData["Error"] = "Nu sunt suficienți jucători AI în baza de date pentru a genera un turneu!";
-        //            return RedirectToAction(nameof(Details), new { id = tournamentId });
-        //        }
+            if (existingRegistration != null)
+            {
+                TempData["InfoMessage"] = "Sunteți deja înscris la acest turneu.";
+                return RedirectToAction(nameof(Details), new { id = tournament.Id });
+            }
 
-        //        using (var transaction = await _context.Database.BeginTransactionAsync())
-        //        {
-        //            try
-        //            {
-        //                // Generate first round matches (8 matches for 16 players)
-        //                await GenerateTournamentMatches(tournament, userPlayer, randomOpponents, surface);
+            // Creează înregistrarea pentru turneu
+            var registration = new TournamentRegistration
+            {
+                TournamentId = tournament.Id,
+                UserId = userId,
+                RegistrationTime = DateTime.Now
+            };
 
-        //                await transaction.CommitAsync();
+            _context.TournamentRegistrations.Add(registration);
+            await _context.SaveChangesAsync();
 
-        //                TempData["Success"] = "V-ați înscris cu succes în turneu și au fost generate meciurile!";
-        //                return RedirectToAction(nameof(Details), new { id = tournamentId });
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                await transaction.RollbackAsync();
-        //                TempData["Error"] = $"Eroare la înscrierea în turneu: {ex.Message}";
-        //                return RedirectToAction(nameof(Details), new { id = tournamentId });
-        //            }
-        //        }
-        //    }
-
-        //    // Helper method for generating tournament matches
-        //    private async Task GenerateTournamentMatches(Tournament tournament, Player userPlayer, List<Player> opponents, Surface surface)
-        //    {
-        //        // Create a list with all participants (user and 15 opponents)
-        //        var allPlayers = new List<Player> { userPlayer };
-        //        allPlayers.AddRange(opponents);
-
-        //        // Create matches for the first round (8 matches)
-        //        var matches = new List<Match>();
-
-        //        // First round - 16 player bracket
-        //        for (int i = 0; i < 8; i++)
-        //        {
-        //            // Classic seeding: 1 vs 16, 2 vs 15, 3 vs 14, etc.
-        //            var player1 = allPlayers[i];
-        //            var player2 = allPlayers[15 - i];
-
-        //            var match = new Match
-        //            {
-        //                TournamentId = tournament.Id,
-        //                Player1Id = player1.Id,
-        //                Player2Id = player2.Id,
-        //                SurfaceId = surface.Id,
-        //                Round = 1,
-        //                MatchOrder = i + 1,
-        //                StartTime = tournament.StartTime.Add(TimeSpan.FromHours(i)),
-        //                IsCompleted = false
-        //            };
-
-        //            matches.Add(match);
-        //        }
-
-        //        _context.Matches.AddRange(matches);
-        //        await _context.SaveChangesAsync();
-        //    }
-        //}
-
+            TempData["SuccessMessage"] = "V-ați înscris cu succes la turneul " + tournament.Name;
+            return RedirectToAction(nameof(Details), new { id = tournament.Id });
+        }
     }
 }

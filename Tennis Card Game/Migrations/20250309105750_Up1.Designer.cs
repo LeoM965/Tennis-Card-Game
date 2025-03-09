@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Tennis_Card_Game.Data;
 
@@ -11,9 +12,11 @@ using Tennis_Card_Game.Data;
 namespace Tennis_Card_Game.Migrations
 {
     [DbContext(typeof(Tennis_Card_GameContext))]
-    partial class Tennis_Card_GameContextModelSnapshot : ModelSnapshot
+    [Migration("20250309105750_Up1")]
+    partial class Up1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -366,7 +369,6 @@ namespace Tennis_Card_Game.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("UserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
@@ -376,7 +378,8 @@ namespace Tennis_Card_Game.Migrations
                     b.HasIndex("SpecialAbilityId");
 
                     b.HasIndex("UserId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[UserId] IS NOT NULL");
 
                     b.ToTable("Players");
                 });
@@ -783,9 +786,7 @@ namespace Tennis_Card_Game.Migrations
 
                     b.HasOne("Tennis_Card_Game.Models.ApplicationUser", "User")
                         .WithOne("Player")
-                        .HasForeignKey("Tennis_Card_Game.Models.Player", "UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("Tennis_Card_Game.Models.Player", "UserId");
 
                     b.Navigation("PlayingStyle");
 
